@@ -1,0 +1,9 @@
+# Cloned app + its venv (re-created by Install)
+app/
+env/
+# Pinokio runtime
+logs/
+# Python / OS junk
+__pycache__/
+*.pyc
+.DS_Store
