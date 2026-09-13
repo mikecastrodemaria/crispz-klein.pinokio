@@ -22,9 +22,10 @@ Installs and launches crispz-klein in one click:
 
 txt2img · **multi-reference editing in the same pipeline** (up to 4 refs — no
 second model, no extra VRAM) · inpaint / outpaint / reframe · ESRGAN + refine
-upscale · single-file/Civitai checkpoints + LoRA switching · 277 styles ·
-Describe / Improve prompt & Vision Mix (Ollama) · Remove BG · Face Swap · CLI +
-the crispz family CLI protocol v1 (`czp`). See the app repo for full docs.
+upscale · single-file/Civitai checkpoints + LoRA switching · **text-encoder swap**
+· 277 styles · **Describe in 9 styles** / Improve prompt & Vision Mix (Ollama) ·
+Remove BG · Face Swap · CLI + the crispz family CLI protocol v1 (`czp`). See the
+app repo for full docs.
 
 Measured on an RTX 5090, 1024×1024, 4 steps: **14.9 GB of VRAM for the whole
 surface** (one model serves txt2img, edit, inpaint and img2img), txt2img in
@@ -60,7 +61,30 @@ surface** (one model serves txt2img, edit, inpaint and img2img), txt2img in
   `faceswap_model_url` in the app's `config.txt`. Until then the tab reports
   `inswapper model not found`.
 - **Describe / Improve / Vision Mix** need a local [Ollama](https://ollama.com)
-  with a vision model (e.g. `llava`, `qwen-vl`).
+  with a vision model. Ollama is detected when the page loads and the vision model
+  you pick is remembered; if Ollama is off or fails, Describe falls back to the
+  caption model instead of stopping on an error.
+- **Describe styles** (Advanced → Prompt AI): *Prompt (prose)*, the default, was
+  measured by regenerating each description with klein at the same seed — it names
+  the medium first, quotes a sign once and gives the era. Also *Prompt (tags)*,
+  *Photo (technical)*, *Art & style*, *Composition & layout*, *Character sheet*,
+  *Text & typography*, *Dataset paragraph* (training captions, after
+  [Captionz](https://github.com/mikecastrodemaria/Captionz)) and *Short caption*.
+  **Length** goes from 60 to 300 words, and the exact instruction sent is shown.
+- **Caption model** (Inpaint / Outpaint Auto-describe and the Describe fallback):
+  local BLIP, or one of your Ollama vision models (`ollama:<name>`). Pick a small
+  one (3-8 GB): it runs right before the image model. BLIP takes over if Ollama fails.
+- Ollama calls send `ollama_num_ctx` 8192 and cap answers at `ollama_num_predict`
+  700 tokens (both in `config.txt`): a Modelfile default context can double the
+  VRAM, and a model stuck in a loop no longer runs without end.
+
+## Optional: text encoder
+
+**Models → Checkpoints → Text encoder** swaps the Qwen3 text encoder for another of
+the same shape — for instance an abliterated Qwen3-4B on the 4B base. Encoders
+already downloaded to the Hugging Face cache are listed when they fit the current
+base; the ones of another size are named under the list with the reason. The app
+README explains which encoders fit and how to download them.
 
 ## Using the app programmatically
 
@@ -147,6 +171,9 @@ read the JSON result.
 - **One port for the whole family.** crispz apps all serve on 7860 by design
   ("no per-tool port"): the reply's `tool` field identifies who answered, not the
   port. Only run one crispz app at a time, or a `czp` call may reach a sibling.
+- **Updates**: use Pinokio's **Update** (launcher + app + dependencies + torch).
+  The app's own `boot_check.bat` also offers GitHub updates, but that prompt is
+  meant for standalone installs.
 - `app/`, `env/` and `logs/` are gitignored (created at install time).
 - The app's `config.txt` is not in the repo. Without it the app reads
   `config-sample.txt`, which already ships the right klein defaults (4 steps,
