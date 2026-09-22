@@ -28,6 +28,12 @@ module.exports = {
       method: "shell.run",
       params: {
         venv: "env",
+        // UTF-8 env: packages built from source read UTF-8 files in their
+        // setup; the legacy cp1252 codec on Windows fails the build.
+        env: {
+          PYTHONUTF8: "1",
+          PYTHONIOENCODING: "utf-8"
+        },
         path: "app",
         message: [
           "uv pip install -r requirements.txt",
@@ -45,6 +51,10 @@ module.exports = {
       method: "shell.run",
       params: {
         venv: "env",
+        env: {
+          PYTHONUTF8: "1",
+          PYTHONIOENCODING: "utf-8"
+        },
         path: "app",
         message: [
           "uv pip install \"insightface>=0.7\"",
